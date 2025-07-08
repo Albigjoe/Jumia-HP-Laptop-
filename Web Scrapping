@@ -1,0 +1,52 @@
+import requests
+from bs4 import BeautifulSoup
+import csv
+
+# Define the URL to scrape
+url = 'https://www.jumia.com.ng/catalog/?q=hp+laptops'
+
+# Set user-agent header to simulate a real browser
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+}
+
+# Send a GET request to the website
+response = requests.get(url, headers=headers)
+
+# Parse the HTML content of the page
+soup = BeautifulSoup(response.content, 'html.parser')
+
+# Find all product containers for laptops
+product_lists = soup.find_all('article', class_='prd _fb col c-prd')
+
+# Initialize list to store laptop details
+laptop_data = []
+
+# Extract name and price for each laptop
+for product in product_lists:
+    name_tag = product.find('h3', class_='name')
+    price_tag = product.find('div', class_='prc')
+
+    name = name_tag.text.strip() if name_tag else 'N/A'
+    price = price_tag.text.strip() if price_tag else 'N/A'
+
+    laptop_data.append({
+        'name': name,
+        'price': price
+    })
+
+# Print summary of results
+print(f"Found {len(laptop_data)} HP laptops:")
+for i, laptop in enumerate(laptop_data, start=1):
+    print(f"{i}. {laptop['name']} - {laptop['price']}")
+
+# Define CSV file path (change this to your preferred location)
+csv_file_path = "C:\\Users\\alawa\\Desktop\\laptops.csv"
+
+# Save extracted data to CSV
+with open(csv_file_path, 'w', newline='', encoding='utf-8') as file:
+    writer = csv.DictWriter(file, fieldnames=['name', 'price'])
+    writer.writeheader()
+    writer.writerows(laptop_data)
+
+print(f"\nSaved to: {csv_file_path}")
